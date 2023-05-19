@@ -1,7 +1,14 @@
 #include <defs.h>
 #include <stub.h>
 
-#define PROJECT_ID 2
+/*
+2: behavioural
+3: sklansky
+4: Brent Kung
+5: ripple 
+6: kogge 
+*/
+#define PROJECT_ID 6
 
 // input control pins
 #define RESET           0
@@ -139,21 +146,12 @@ void main()
     reg_gpio_oe = 1;
 
     configure_io();
+    reg_uart_enable = 1;
 
     // activate the project by setting the 0th bit of 1st bank of LA
     reg_la0_iena = 0; // input enable off
     reg_la0_oenb = 0xFFFFFFFF; // enable all of bank0 logic analyser outputs (ignore the name, 1 is on, 0 off)
     reg_la0_data = (1 << PROJECT_ID); // enable the project
-
-
-    // blink
-    reg_gpio_out = 1; // OFF
-    delay(4000000);
-    reg_gpio_out = 0; // ON
-    delay(4000000);
-
-    // tell the test bench we're ready
-    reg_mprj_datal |= 1 << FW_READY;
 
     reg_la1_oenb = 0xFFFFFFFF; // enable
     reg_la1_iena = 0;          // enable
@@ -163,6 +161,120 @@ void main()
 
     reg_la3_oenb = 0xFFFFFFFF; // enable
     reg_la3_iena = 0;
+
+
+    // blink
+    reg_gpio_out = 1; // OFF
+    delay(4000000);
+    reg_gpio_out = 0; // ON
+    delay(4000000);
+
+    // blink forever
+	while (1) {
+        reg_gpio_out = 1; // OFF
+		delay(1000000);
+        reg_gpio_out = 0; // ON
+		delay(1000000);
+//        test_ring_osc();
+ //       test_adder();
+        test_adder_in_ring(1);
+        test_adder_in_ring(0);
+    }
+}
+
+
+void test_adder_in_ring(int bits)
+{
+    // hold in reset
+    SET(reg_la1_data, RESET);
+    // stop the ring
+    CLR(reg_la1_data, STOP_B);
+
+    if(bits)
+    {
+    // setup for 2 bit
+    // set a & b input to be 0
+    set_mux(A_INPUT, 0x0006); // 110
+    set_mux(B_INPUT, 0x0001); // 001
+
+    // disable extra inverter
+    CLR(reg_la1_data, EXTRA_INV);
+
+    // set control pins up include adder
+    set_mux(A_INPUT_EXT_BIT,     0xFFFFFFFF ^ 0x0006);      // which bits to allow through from a input
+    set_mux(A_INPUT_RING_BIT,    0xFFFFFFFF ^ 1 << 0 );     // which bit the ring enters the a input of adder
+    set_mux(S_OUTPUT_BIT,        0xFFFFFFFF ^ 1 << 2 );     // which bit of the adder's sum goes back to the ring
+    }
+    else
+    {
+
+    // setup for 0 bit
+    // set a & b input to be 0
+    set_mux(A_INPUT, 0x0000); // 110
+    set_mux(B_INPUT, 0x0000); // 001
+
+    // disable extra inverter
+    SET(reg_la1_data, EXTRA_INV);
+
+    // set control pins up include adder
+    set_mux(A_INPUT_EXT_BIT,     0xFFFFFFFF ^ 0x0000);      // which bits to allow through from a input
+    set_mux(A_INPUT_RING_BIT,    0xFFFFFFFF ^ 1 << 0 );     // which bit the ring enters the a input of adder
+    set_mux(S_OUTPUT_BIT,        0xFFFFFFFF ^ 1 << 0 );     // which bit of the adder's sum goes back to the ring
+    }
+
+    // disable control loop
+    SET(reg_la1_data, CONTROL_B);
+
+    // disable bypass loop
+    SET(reg_la1_data, BYPASS_B);
+
+    // load the integration counter
+    reg_la2_data = 500000;
+    SET(reg_la1_data, COUNTER_LOAD);
+    CLR(reg_la1_data, RESET);
+    CLR(reg_la1_data, COUNTER_LOAD);
+
+    // start the loop & enable in the same cycle
+    reg_la1_data |= ((1 << STOP_B) | (1 << COUNTER_EN));
+
+    // wait for done to go high
+    while(1) 
+    {
+        if(GET(reg_la1_data_in, DONE))
+            break;
+    }
+
+    // set the ring osc value onto the pins
+    reg_mprj_datal = reg_la2_data_in << RING_OUT_BIT0;
+
+    // set done on the mprj pins
+//    reg_mprj_datal |= 1 << FW_DONE;
+    print("ring count: 0x");
+    print_hex(reg_la2_data_in, 8);
+    print("\n");
+
+}
+
+void test_adder()
+{
+    for(int i = 0; i < 1000; i ++)
+    {
+        set_mux(A_INPUT, i);    // set input a
+        set_mux(B_INPUT, i);    // set input b
+        set_mux(SUM, 0);        // 0 is ignored
+
+        print_hex(i, 8);
+        print(" = ");
+        print_hex(reg_la3_data_in, 8);
+        print("\n");
+    } 
+}
+
+void test_ring_osc() 
+{
+    // tell the test bench we're ready
+    reg_mprj_datal |= 1 << FW_READY;
+
 
     // reproduce test_bypass in the test_adder.py to measure the ring oscillator
     // it doesn't work here for some reason. The ring never resolves from x
@@ -191,7 +303,7 @@ void main()
     CLR(reg_la1_data, BYPASS_B);
 
     // load the integration counter
-    reg_la2_data = 105;
+    reg_la2_data = 500000;
     SET(reg_la1_data, COUNTER_LOAD);
     CLR(reg_la1_data, RESET);
     CLR(reg_la1_data, COUNTER_LOAD);
@@ -211,13 +323,9 @@ void main()
 
     // set done on the mprj pins
 //    reg_mprj_datal |= 1 << FW_DONE;
+    print("ring count: 0x");
+    print_hex(reg_la2_data_in, 8);
+    print("\n");
 
-    // blink forever
-	while (1) {
-        reg_gpio_out = 1; // OFF
-		delay(4000000);
-        reg_gpio_out = 0; // ON
-		delay(4000000);
-    }
 }
 
