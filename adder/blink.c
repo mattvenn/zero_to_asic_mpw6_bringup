@@ -8,7 +8,7 @@
 5: ripple 
 6: kogge 
 */
-#define PROJECT_ID 6
+#define PROJECT_ID 2
 
 // input control pins
 #define RESET           0
@@ -175,10 +175,10 @@ void main()
 		delay(1000000);
         reg_gpio_out = 0; // ON
 		delay(1000000);
-//        test_ring_osc();
+        test_ring_osc();
  //       test_adder();
-        test_adder_in_ring(1);
-        test_adder_in_ring(0);
+//        test_adder_in_ring(1);
+ //       test_adder_in_ring(0);
     }
 }
 
@@ -303,7 +303,7 @@ void test_ring_osc()
     CLR(reg_la1_data, BYPASS_B);
 
     // load the integration counter
-    reg_la2_data = 500000;
+    reg_la2_data = 300000;
     SET(reg_la1_data, COUNTER_LOAD);
     CLR(reg_la1_data, RESET);
     CLR(reg_la1_data, COUNTER_LOAD);
@@ -319,7 +319,7 @@ void test_ring_osc()
     }
 
     // set the ring osc value onto the pins
-    reg_mprj_datal = reg_la2_data_in << RING_OUT_BIT0;
+    //reg_mprj_datal = reg_la2_data_in << RING_OUT_BIT0;
 
     // set done on the mprj pins
 //    reg_mprj_datal |= 1 << FW_DONE;
