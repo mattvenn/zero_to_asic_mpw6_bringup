@@ -45,3 +45,8 @@ clean:
 
 .PHONY: clean hex all flash
 
+program_arduino:
+	pio run --target upload --upload-port /dev/serial/by-id/usb-Arduino_Nano_33_BLE_3C48BB3E0BD44A03-if00
+
+monitor:
+	pio device monitor

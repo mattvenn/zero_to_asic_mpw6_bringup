@@ -46,7 +46,7 @@ void configure_io()
     // -------------------------------------------
 
     // 1 inputs | Start
-    reg_mprj_io_8 =   GPIO_MODE_USER_STD_INPUT_NOPULL;
+    reg_mprj_io_8 =   GPIO_MODE_USER_STD_INPUT_PULLDOWN;
 
     // 3 outputs | Compress Out, Breath Out and Pulse Out
     reg_mprj_io_14 =  GPIO_MODE_USER_STD_OUTPUT; // compress

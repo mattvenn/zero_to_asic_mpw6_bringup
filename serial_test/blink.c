@@ -1,6 +1,8 @@
 #include <defs.h>
 #include <stub.h>
-
+#include <hw/common.h>
+#include <uart.h>
+#include <uart_api.h>
 
 // --------------------------------------------------------
 // Firmware routines
@@ -100,41 +102,8 @@ void delay(const int d)
 
 }
 
-void main()
+void blink()
 {
-	int i, j, k;
-
-    reg_gpio_mode1 = 1;
-    reg_gpio_mode0 = 0;
-    reg_gpio_ien = 1;
-    reg_gpio_oe = 1;
-
-    configure_io();
-
-    reg_uart_enable = 1;
-
-    // Configure All LA probes as inputs to the cpu
-	reg_la0_oenb = reg_la0_iena = 0x00000000;    // [31:0]
-	reg_la1_oenb = reg_la1_iena = 0x00000000;    // [63:32]
-	reg_la2_oenb = reg_la2_iena = 0x00000000;    // [95:64]
-	reg_la3_oenb = reg_la3_iena = 0x00000000;    // [127:96]
-
-	// write data to la output
-    //	reg_la0_data = 0x00;
-    //	reg_la1_data = 0x00;
-    //	reg_la2_data = 0x00;
-    //	reg_la3_data = 0x00;
-
-    // read data from la input
-    //	data0 = reg_la0_data;
-    //	data1 = reg_la1_data;
-    //	data2 = reg_la2_data;
-    //	data3 = reg_la3_data;
-
-    print("Hello World !!");
-
-	while (1) {
-
         reg_gpio_out = 1; // OFF
         reg_mprj_datal = 0x00000000;
         reg_mprj_datah = 0x00000000;
@@ -146,9 +115,63 @@ void main()
         reg_mprj_datal = 0xffffffff;
 
 		delay(8000000);
+}
 
+int wait_for_char()
+{
+    int uart_temp;
+    while (uart_rxempty_read() == 1);
+    uart_temp = reg_uart_data;
+   
+    uart_pop_char();
+    return uart_temp;
+}
+
+void send_uart(int data){
+    while (reg_uart_txfull == 1);
+    reg_uart_data = data;
+}
+
+void main()
+{
+	int i, j, k;
+
+    reg_gpio_mode1 = 1;
+    reg_gpio_mode0 = 0;
+    reg_gpio_ien = 1;
+    reg_gpio_oe = 1;
+
+    configure_io();
+
+    uart_RX_enable(1);
+
+    /*
+    see https://github.com/efabless/caravel_SI_testing/blob/chipignite-dev3-C-tests/caravel_board/firmware_vex/mpw8_tests/uart_recieve_back/uart_recieve_back.c
+    and https://github.com/efabless/caravel_SI_testing/blob/chipignite-dev3-C-tests/caravel_board/firmware_vex/mpw8_tests/uart_reception/uart_reception.c
+    for examples of serial tests
+    */
+
+    int count = 0;
+	while (1) {
+
+        count ++;
+        char c = wait_for_char();
+        switch(c) {
+            case 'a':
+                print("Hello World !!\n");
+                break;
+            case 'b':
+                print_hex(count, 4);
+                print("\n");
+                break;
+            case 'c':
+                print("blinking...\n");
+                blink();
+                break;
+            default:
+                print("a: hello\nb: count\nc: blink\n");
+                break;
+        }
     }
-
-
 }
 

@@ -164,7 +164,7 @@ void main()
     //reg_la0_data = (1 << PROJECT_ID); // enable the project
 
     // configure function generator: 10 clock cycles per sample, 64 * 4 samples, start run
-    config_generator(10, 64, 1);
+    config_generator(4, 64, 1);
 
     // blink GPIO
 	while (1) {
