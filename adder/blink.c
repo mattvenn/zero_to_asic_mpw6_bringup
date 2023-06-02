@@ -1,5 +1,8 @@
 #include <defs.h>
 #include <stub.h>
+#include <hw/common.h>
+#include <uart.h>
+#include <uart_api.h>
 
 /*
 2: behavioural
@@ -8,7 +11,7 @@
 5: ripple 
 6: kogge 
 */
-#define PROJECT_ID 2
+//#define PROJECT_ID 5
 
 // input control pins
 #define RESET           0
@@ -48,6 +51,16 @@
 #define A_INPUT_EXT_BIT   3
 #define A_INPUT_RING_BIT  4
 #define SUM               5
+
+int wait_for_char()
+{
+    int uart_temp;
+    while (uart_rxempty_read() == 1);
+    uart_temp = reg_uart_data;
+   
+    uart_pop_char();
+    return uart_temp;
+}
 
 void set_mux(unsigned char reg_sel, unsigned int value)
 {
@@ -151,7 +164,6 @@ void main()
     // activate the project by setting the 0th bit of 1st bank of LA
     reg_la0_iena = 0; // input enable off
     reg_la0_oenb = 0xFFFFFFFF; // enable all of bank0 logic analyser outputs (ignore the name, 1 is on, 0 off)
-    reg_la0_data = (1 << PROJECT_ID); // enable the project
 
     reg_la1_oenb = 0xFFFFFFFF; // enable
     reg_la1_iena = 0;          // enable
@@ -169,20 +181,58 @@ void main()
     reg_gpio_out = 0; // ON
     delay(4000000);
 
-    // blink forever
 	while (1) {
         reg_gpio_out = 1; // OFF
 		delay(1000000);
         reg_gpio_out = 0; // ON
 		delay(1000000);
-        test_ring_osc();
+
+        char c = wait_for_char();
+        switch(c) {
+            case 'p':
+                c = wait_for_char();
+                print("set project to ");
+                print_dec(c-48);
+                print("\n");
+                reg_la0_data = (1 << (c-48)); // enable the project
+                break;
+            case 'c':
+                print("running 200 then 20x control\n");
+                for(i = 0 ; i < 200; i ++)
+                {
+                    print(".");
+                    test_ring_osc(1, 0);
+                }
+                print("\n");
+                for(i = 0 ; i < 20; i ++)
+                    test_ring_osc(1, 1);
+                print("done\n");
+                break;
+            case 'b':
+                print("running 200 then 20x bypass\n");
+                for(i = 0 ; i < 200; i ++)
+                {
+                    print(".");
+                    test_ring_osc(0, 0);
+                }
+                print("\n");
+                for(i = 0 ; i < 20; i ++)
+                    test_ring_osc(0, 1);
+                print("done\n");
+                break;
+            case 't':
+                print("running 1x control\n");
+                test_ring_osc(1, 1);
+                break;
  //       test_adder();
 //        test_adder_in_ring(1);
  //       test_adder_in_ring(0);
+            default:
+                print("p: select project\nb: run with bypass\nc: run with control\n");
+                break;
+        }
     }
 }
-
-
 void test_adder_in_ring(int bits)
 {
     // hold in reset
@@ -270,7 +320,7 @@ void test_adder()
     } 
 }
 
-void test_ring_osc() 
+void test_ring_osc(int control, int print_result) 
 {
     // tell the test bench we're ready
     reg_mprj_datal |= 1 << FW_READY;
@@ -284,7 +334,7 @@ void test_ring_osc()
     SET(reg_la1_data, RESET);
     // stop the ring
     CLR(reg_la1_data, STOP_B);
-    // enable extra inverter
+    // disable extra inverter
     SET(reg_la1_data, EXTRA_INV);
 
     // todo
@@ -296,14 +346,23 @@ void test_ring_osc()
     set_mux(S_OUTPUT_BIT,        0xFFFFFFFF);
     set_mux(A_INPUT_RING_BIT,    0xFFFFFFFF);
 
-    // disable control loop
-    SET(reg_la1_data, CONTROL_B);
+    // enable control loop
+    if(control)
+    {
+        // enable control loop
+        CLR(reg_la1_data, CONTROL_B);
+        SET(reg_la1_data, BYPASS_B);
+    }
+    else
+    {
+        // enable bypass loop
+        SET(reg_la1_data, CONTROL_B);
+        CLR(reg_la1_data, BYPASS_B);
+    }
 
-    // enable bypass loop
-    CLR(reg_la1_data, BYPASS_B);
 
     // load the integration counter
-    reg_la2_data = 300000;
+    reg_la2_data = 2000000;
     SET(reg_la1_data, COUNTER_LOAD);
     CLR(reg_la1_data, RESET);
     CLR(reg_la1_data, COUNTER_LOAD);
@@ -323,9 +382,12 @@ void test_ring_osc()
 
     // set done on the mprj pins
 //    reg_mprj_datal |= 1 << FW_DONE;
-    print("ring count: 0x");
+    if(print_result)
+    {
+    print("0x");
     print_hex(reg_la2_data_in, 8);
     print("\n");
+    }
 
 }
 
