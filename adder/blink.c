@@ -1,4 +1,5 @@
 #include <defs.h>
+//#include <math.h>
 #include <stub.h>
 #include <hw/common.h>
 #include <uart.h>
@@ -149,90 +150,31 @@ void delay(const int d)
 
 }
 
-void main()
+unsigned long pow(int a, int b)
 {
-	int i, j, k;
-
-    reg_gpio_mode1 = 1;
-    reg_gpio_mode0 = 0;
-    reg_gpio_ien = 1;
-    reg_gpio_oe = 1;
-
-    configure_io();
-    reg_uart_enable = 1;
-
-    // activate the project by setting the 0th bit of 1st bank of LA
-    reg_la0_iena = 0; // input enable off
-    reg_la0_oenb = 0xFFFFFFFF; // enable all of bank0 logic analyser outputs (ignore the name, 1 is on, 0 off)
-
-    reg_la1_oenb = 0xFFFFFFFF; // enable
-    reg_la1_iena = 0;          // enable
-
-    reg_la2_oenb = 0xFFFFFFFF; // enable
-    reg_la2_iena = 0;          // enable
-
-    reg_la3_oenb = 0xFFFFFFFF; // enable
-    reg_la3_iena = 0;
-
-
-    // blink
-    reg_gpio_out = 1; // OFF
-    delay(4000000);
-    reg_gpio_out = 0; // ON
-    delay(4000000);
-
-	while (1) {
-        reg_gpio_out = 1; // OFF
-		delay(1000000);
-        reg_gpio_out = 0; // ON
-		delay(1000000);
-
-        char c = wait_for_char();
-        switch(c) {
-            case 'p':
-                c = wait_for_char();
-                print("set project to ");
-                print_dec(c-48);
-                print("\n");
-                reg_la0_data = (1 << (c-48)); // enable the project
-                break;
-            case 'c':
-                print("running 200 then 20x control\n");
-                for(i = 0 ; i < 200; i ++)
-                {
-                    print(".");
-                    test_ring_osc(1, 0);
-                }
-                print("\n");
-                for(i = 0 ; i < 20; i ++)
-                    test_ring_osc(1, 1);
-                print("done\n");
-                break;
-            case 'b':
-                print("running 200 then 20x bypass\n");
-                for(i = 0 ; i < 200; i ++)
-                {
-                    print(".");
-                    test_ring_osc(0, 0);
-                }
-                print("\n");
-                for(i = 0 ; i < 20; i ++)
-                    test_ring_osc(0, 1);
-                print("done\n");
-                break;
-            case 't':
-                print("running 1x control\n");
-                test_ring_osc(1, 1);
-                break;
- //       test_adder();
-//        test_adder_in_ring(1);
- //       test_adder_in_ring(0);
-            default:
-                print("p: select project\nb: run with bypass\nc: run with control\n");
-                break;
-        }
+    unsigned long result = a;
+    while (b != 0) {
+        result *= 16;
+        --b;
     }
+    return result;
 }
+unsigned long read32bit()
+{
+    unsigned long a = 0;
+    char c = 0;
+    int i = 0;
+    print("waiting for 8 characters\n");
+    for(i = 0; i < 8; i++)
+    {
+        c = wait_for_char() - 48;
+        if(c > 10)
+            c -= 39;
+        a += pow(c, 7-i);
+    }
+    return a;
+}
+
 void test_adder_in_ring(int bits)
 {
     // hold in reset
@@ -305,19 +247,14 @@ void test_adder_in_ring(int bits)
 
 }
 
-void test_adder()
+unsigned long test_adder(unsigned long a, unsigned long b)
 {
-    for(int i = 0; i < 1000; i ++)
-    {
-        set_mux(A_INPUT, i);    // set input a
-        set_mux(B_INPUT, i);    // set input b
+        set_mux(A_INPUT, a);    // set input a
+        set_mux(B_INPUT, b);    // set input b
         set_mux(SUM, 0);        // 0 is ignored
 
-        print_hex(i, 8);
-        print(" = ");
         print_hex(reg_la3_data_in, 8);
         print("\n");
-    } 
 }
 
 void test_ring_osc(int control, int print_result) 
@@ -391,3 +328,97 @@ void test_ring_osc(int control, int print_result)
 
 }
 
+void main()
+{
+	int i, j, k;
+
+    reg_gpio_mode1 = 1;
+    reg_gpio_mode0 = 0;
+    reg_gpio_ien = 1;
+    reg_gpio_oe = 1;
+
+    configure_io();
+    reg_uart_enable = 1;
+
+    // activate the project by setting the 0th bit of 1st bank of LA
+    reg_la0_iena = 0; // input enable off
+    reg_la0_oenb = 0xFFFFFFFF; // enable all of bank0 logic analyser outputs (ignore the name, 1 is on, 0 off)
+
+    reg_la1_oenb = 0xFFFFFFFF; // enable
+    reg_la1_iena = 0;          // enable
+
+    reg_la2_oenb = 0xFFFFFFFF; // enable
+    reg_la2_iena = 0;          // enable
+
+    reg_la3_oenb = 0xFFFFFFFF; // enable
+    reg_la3_iena = 0;
+
+
+    // blink
+    reg_gpio_out = 1; // OFF
+    delay(4000000);
+    reg_gpio_out = 0; // ON
+    delay(4000000);
+    print("started\n");
+
+    unsigned long a;
+    unsigned long b;
+
+	while (1) {
+        reg_gpio_out = 1; // OFF
+		delay(1000000);
+        reg_gpio_out = 0; // ON
+		delay(1000000);
+
+        char c = wait_for_char();
+        switch(c) {
+            case 'a':
+                a = read32bit();
+                b = read32bit();
+                test_adder(a, b);
+                break;
+            case 'p':
+                print("choose project 2 -> 6: ");
+                c = wait_for_char();
+                print("set project to ");
+                print_dec(c-48);
+                print("\n");
+                reg_la0_data = (1 << (c-48)); // enable the project
+                break;
+            case 'c':
+                print("running 200 then 20x control\n");
+                for(i = 0 ; i < 200; i ++)
+                {
+                    print(".");
+                    test_ring_osc(1, 0);
+                }
+                print("\n");
+                for(i = 0 ; i < 20; i ++)
+                    test_ring_osc(1, 1);
+                print("done\n");
+                break;
+            case 'b':
+                print("running 200 then 20x bypass\n");
+                for(i = 0 ; i < 200; i ++)
+                {
+                    print(".");
+                    test_ring_osc(0, 0);
+                }
+                print("\n");
+                for(i = 0 ; i < 20; i ++)
+                    test_ring_osc(0, 1);
+                print("done\n");
+                break;
+            case 't':
+                print("running 1x control\n");
+                test_ring_osc(1, 1);
+                break;
+ //       test_adder();
+//        test_adder_in_ring(1);
+ //       test_adder_in_ring(0);
+            default:
+                print("p: select project\nb: run with bypass\nc: run with control\n");
+                break;
+        }
+    }
+}
