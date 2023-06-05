@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import random
 import serial
 port = '/dev/serial/by-id/usb-Arduino_Nano_33_BLE_3C48BB3E0BD44A03-if00'
@@ -13,17 +14,24 @@ def add(a, b):
     resp = int(ser.readline().decode(), 16)
     return resp
 
-with serial.Serial(port, 9600, timeout=1) as ser:
+def select_project(p):
     ser.write(b'p')
     resp = ser.readline()
     assert resp == b'choose project 2 -> 6: '
-    ser.write(b'2')
+    ser.write(str(p).encode())
     resp = ser.readline()
-    assert resp == b'set project to  002\r\n'
+    assert resp == f'set project to  00{p}\r\n'.encode()
+    print(f"set project to {p}")
+
+with serial.Serial(port, 9600, timeout=1) as ser:
+    for project in [2,3,4,5,6]:
+        select_project(project)
     
-    for i in range(10):
-        a = random.randint(0, 2**32)
-        b = random.randint(0, 2**32)
-        result = (a + b) % (2**32)
-        print(f"{a:08x} + {b:08x} = {result:08x}")
-        assert add(a, b) == result
+        num_tests = 1000
+        for i in range(num_tests):
+            a = random.randint(0, 2**32)
+            b = random.randint(0, 2**32)
+            result = (a + b) % (2**32)
+            #print(f"{a:08x} + {b:08x} = {result:08x}")
+            assert add(a, b) == result
+        print(f"completed {num_tests} tests")
