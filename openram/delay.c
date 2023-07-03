@@ -6,7 +6,7 @@
 void delay(const uint32_t cycles) {
     /* Configure timer for a single-shot countdown */
 	reg_timer0_config = 0;
-	reg_timer0_data = d;
+	reg_timer0_data = cycles;
     reg_timer0_config = 1;
 
     // Loop, waiting for value to reach zero
