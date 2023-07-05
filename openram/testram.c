@@ -50,38 +50,42 @@ void main()
         {
         case '?':
             // loopback
-            serial_putc('!');
+            print("!\n");
             break;
         case 'R':
             // read i.e. "R00:" -> "12345678"
-            addr = serial_gethex(':');
+            addr = serial_gethex('\n');
             print_hex(read_from_ram(addr), 8);
+            serial_putc('\n');
             break;
         case 'W':
             // write i.e. "W01:deadbeef:" then read back -> "deadbeef"
             addr = serial_gethex(':');
-            value = serial_gethex(':');
+            value = serial_gethex('\n');
             write_to_ram(addr, value);
             print_hex(read_from_ram(addr), 8);
+            serial_putc('\n');
             break;
         case 'L':
             // set latencies i.e. "L03030303:" -> "03030303"
-            set_ram_latencies_w(serial_gethex(':'));
+            set_ram_latencies_w(serial_gethex('\n'));
             print_hex(read_ram_latencies_w(), 8);
+            serial_putc('\n');
             break;
         case 'l':
             // read latencies
             print_hex(read_ram_latencies_w(), 8);
+            serial_putc('\n');
             break;
         case 'M':
             // set mgmt core as RW
             set_ram_port_config(RAM_CONF__MGMT_RW__UPRJ_RO);
-            serial_putc('!');
+            print("!\n");
             break;
         case 'U':
             // set uprj as RW
             set_ram_port_config(RAM_CONF__MGMT_RO__UPRJ_RW);
-            serial_putc('!');
+            print("!\n");
             break;
         default:
             break;
