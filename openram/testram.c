@@ -3,6 +3,7 @@
 
 #include "delay.h"
 #include "openram.h"
+#include "serial.h"
 
 static void configure_io();
 
@@ -29,27 +30,61 @@ void main()
     // enable wishbone
     reg_wb_enable  = 1;
 
+    // enable uart (RX & TX)
+    reg_uart_enable = 1;
+
     // allow Caravel to write to the shared RAM
     set_ram_port_config(RAM_CONF__MGMT_RW__UPRJ_RO);
 
     // configure latencies to 3,3,3,3
     set_ram_latencies(3,3,3,3);
 
-    // load the function data into sram
-    for(i = 0; i < 64; i ++)
+    uint8_t led = 0;
+    uint8_t cmd;
+    uint8_t addr;
+    uint32_t value;
+	while (1) 
     {
-        write_to_ram(i, 4*i + ((4*i+1) << 8) + ((4*i+2) << 16) + ((4*i+3) << 24));
-    }
-
-    // read 1 address back just to check
-    read_from_ram(0);
-
-    // blink GPIO
-	while (1) {
-        reg_gpio_out = 1; // OFF
-		delay(4000000);
-        reg_gpio_out = 0; // ON
-		delay(4000000);
+        uint8_t cmd = serial_getc();
+        switch (cmd)
+        {
+        case '?':
+            // loopback
+            serial_putc('!');
+            break;
+        case 'R':
+            // read i.e. "R00:" -> "12345678"
+            addr = serial_gethex(':');
+            print_hex(read_from_ram(addr), 8);
+            break;
+        case 'W':
+            // write i.e. "W01:deadbeef:" then read back -> "deadbeef"
+            addr = serial_gethex(':');
+            value = serial_gethex(':');
+            write_to_ram(addr, value);
+            print_hex(read_from_ram(addr), 8);
+            break;
+        case 'L':
+            // latencies i.e. "L03030303:" -> "03030303"
+            set_ram_latencies_w(serial_gethex(':'));
+            print_hex(read_ram_latencies_w(), 8);
+            break;
+        case 'M':
+            // set mgmt core as RW
+            set_ram_port_config(RAM_CONF__MGMT_RW__UPRJ_RO);
+            serial_putc('!');
+            break;
+        case 'U':
+            // set uprj as RW
+            set_ram_port_config(RAM_CONF__MGMT_RO__UPRJ_RW);
+            serial_putc('!');
+            break;
+        default:
+            break;
+        }
+        
+        reg_gpio_out = led; // toggle LED
+        led ^= 1;
     }
 }
 

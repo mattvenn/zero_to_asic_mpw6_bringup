@@ -11,7 +11,9 @@ enum RAM_PORT_CONFIG {
 void set_ram_port_config(enum RAM_PORT_CONFIG config);
 
 void set_ram_latencies(uint8_t mgmt_prefetch, uint8_t mgmt_read, uint8_t uprj_prefetch, uint8_t uprj_read);
-uint32_t read_ram_latencies();
+void set_ram_latencies_w(uint32_t latencies);
+
+uint32_t read_ram_latencies_w();
 
 void write_to_ram(uint8_t addr, uint32_t data);
 uint32_t read_from_ram(uint8_t addr);

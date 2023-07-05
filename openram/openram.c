@@ -42,6 +42,10 @@ void set_ram_latencies(uint8_t mgmt_prefetch, uint8_t mgmt_read, uint8_t uprj_pr
                         | (uprj_prefetch << 8) | uprj_read;   
 }
 
-uint32_t read_ram_latencies() {
+void set_ram_latencies_w(uint32_t latencies) {
+    OPENRAM_LATENCY = latencies;
+}
+
+uint32_t read_ram_latencies_w() {
     return OPENRAM_LATENCY;
 }
