@@ -65,8 +65,12 @@ void main()
             print_hex(read_from_ram(addr), 8);
             break;
         case 'L':
-            // latencies i.e. "L03030303:" -> "03030303"
+            // set latencies i.e. "L03030303:" -> "03030303"
             set_ram_latencies_w(serial_gethex(':'));
+            print_hex(read_ram_latencies_w(), 8);
+            break;
+        case 'l':
+            // read latencies
             print_hex(read_ram_latencies_w(), 8);
             break;
         case 'M':
