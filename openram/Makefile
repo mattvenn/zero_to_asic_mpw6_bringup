@@ -101,8 +101,8 @@ $(LSS) : $(ELF)
 make_output_dir :
 	$(shell mkdir $(OUT_DIR_F) 2>/dev/null)
 
-flash: $(PROJECT).hex
-	python3 ../util/caravel_hkflash.py $(PROJECT).hex
+flash: $(OUT_DIR_F)/$(PROJECT).hex
+	python3 ../util/caravel_hkflash.py $<
 
 flash2: $(PROJECT).hex
 	python3 ../util/caravel_flash.py $(PROJECT).hex
