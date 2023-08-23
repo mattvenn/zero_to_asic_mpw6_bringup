@@ -76,6 +76,7 @@ void delay(const int d)
 
 }
 
+#define DELAY 5000000
 void main()
 {
 	int i, j, k;
@@ -88,14 +89,19 @@ void main()
     configure_io();
 
 	while (1) {
-        reg_gpio_out = 1; // OFF
-        reg_mprj_datah = 0x0000001F; // lower 5 bits
-        reg_mprj_datal = 0xE0000000; // top 3 bits 
-		delay(1000000);
-        reg_gpio_out = 0; // ON
-		delay(1000000);
-        reg_mprj_datah = 0x00000000; // lower 5 bits
-        reg_mprj_datal = 0x00000000; // top 3 bits 
+        //reg_gpio_out = 1; // OFF
+        //reg_gpio_out = 0; // ON
+        reg_mprj_datah = 0x7; reg_mprj_datal = 0xe0000000; delay(DELAY);
+        reg_mprj_datah = 0x0; reg_mprj_datal = 0xc0000000; delay(DELAY);
+        reg_mprj_datah = 0xb; reg_mprj_datal = 0x60000000; delay(DELAY);
+        reg_mprj_datah = 0x9; reg_mprj_datal = 0xe0000000; delay(DELAY);
+        reg_mprj_datah = 0xc; reg_mprj_datal = 0xc0000000; delay(DELAY);
+        reg_mprj_datah = 0xd; reg_mprj_datal = 0xa0000000; delay(DELAY);
+        reg_mprj_datah = 0xf; reg_mprj_datal = 0x80000000; delay(DELAY);
+        reg_mprj_datah = 0x0; reg_mprj_datal = 0xe0000000; delay(DELAY);
+        reg_mprj_datah = 0xf; reg_mprj_datal = 0xe0000000; delay(DELAY);
+        reg_mprj_datah = 0xc; reg_mprj_datal = 0xe0000000; delay(DELAY);
+
 
     }
 }
