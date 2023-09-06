@@ -66,25 +66,25 @@ void configure_io()
     reg_mprj_io_4 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
 
     // design select
-    reg_mprj_io_12 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_13 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_14 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_15 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_16 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_17 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_18 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_19 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_20 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
+    reg_mprj_io_12 = GPIO_MODE_MGMT_STD_INPUT_PULLDOWN;
+    reg_mprj_io_13 = GPIO_MODE_MGMT_STD_INPUT_PULLDOWN;
+    reg_mprj_io_14 = GPIO_MODE_MGMT_STD_INPUT_PULLDOWN;
+    reg_mprj_io_15 = GPIO_MODE_MGMT_STD_INPUT_PULLDOWN;
+    reg_mprj_io_16 = GPIO_MODE_MGMT_STD_INPUT_PULLDOWN;
+    reg_mprj_io_17 = GPIO_MODE_MGMT_STD_INPUT_PULLDOWN;
+    reg_mprj_io_18 = GPIO_MODE_MGMT_STD_INPUT_PULLDOWN;
+    reg_mprj_io_19 = GPIO_MODE_MGMT_STD_INPUT_PULLDOWN;
+    reg_mprj_io_20 = GPIO_MODE_MGMT_STD_INPUT_PULLDOWN;
 
     // inputs
-    reg_mprj_io_20 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_21 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_22 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_23 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_24 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_25 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_26 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-    reg_mprj_io_27 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
+    reg_mprj_io_21 = GPIO_MODE_MGMT_STD_INPUT_PULLUP;
+    reg_mprj_io_22 = GPIO_MODE_MGMT_STD_INPUT_PULLUP;
+    reg_mprj_io_23 = GPIO_MODE_MGMT_STD_INPUT_PULLUP;
+    reg_mprj_io_24 = GPIO_MODE_MGMT_STD_INPUT_PULLUP;
+    reg_mprj_io_25 = GPIO_MODE_MGMT_STD_INPUT_PULLUP;
+    reg_mprj_io_26 = GPIO_MODE_MGMT_STD_INPUT_PULLUP;
+    reg_mprj_io_27 = GPIO_MODE_MGMT_STD_INPUT_PULLUP;
+    reg_mprj_io_28 = GPIO_MODE_MGMT_STD_INPUT_PULLUP;
 
     // pins for the 7 seg counter
     reg_mprj_io_29 = GPIO_MODE_MGMT_STD_OUTPUT; 
@@ -119,7 +119,7 @@ void delay(const int d)
 
 int get_inputs()
 {
-    return (reg_mprj_datal >> 20) & 0xff;
+    return (reg_mprj_datal >> 21) & 0xff;
 }
 
 #define DELAY 5000000

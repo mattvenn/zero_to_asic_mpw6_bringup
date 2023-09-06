@@ -38,6 +38,12 @@ flash: blink.hex
 flash2: blink.hex
 	python3 ../util/caravel_flash.py blink.hex
 
+# https://github.com/stacksmashing/pico-serprog
+# connect
+# GP1: CS
+# GP2: SCK
+# GP3: SDI
+# GP4: SDO
 flash_pico: blink.bin
 	truncate -s 4M blink.bin
 	flashrom -p serprog:dev=/dev/serial/by-id/usb-Raspberry_Pi_Pico_E66164084351492E-if00:115200 -w blink.bin
