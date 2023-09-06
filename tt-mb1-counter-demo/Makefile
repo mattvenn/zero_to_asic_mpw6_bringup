@@ -47,5 +47,8 @@ flash_pico: blink.bin
 clean:
 	rm -f *.elf *.hex *.bin *.vvp *.vcd
 
+monitor:
+	pio device monitor -p /dev/serial/by-id/usb-Arduino_Nano_33_BLE_3C48BB3E0BD44A03-if00
+
 .PHONY: clean hex all flash
 
