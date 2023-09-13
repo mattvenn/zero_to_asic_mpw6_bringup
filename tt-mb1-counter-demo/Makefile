@@ -46,7 +46,7 @@ flash2: blink.hex
 # GP4: SDO
 flash_pico: blink.bin
 	truncate -s 4M blink.bin
-	flashrom -p serprog:dev=/dev/serial/by-id/usb-Raspberry_Pi_Pico_E66164084351492E-if00:115200 -w blink.bin
+	flashrom --noverify-all -p serprog:dev=/dev/serial/by-id/usb-Raspberry_Pi_Pico_E66164084351492E-if00:115200 -l blink.layout --image exe -w blink.bin 
 
 # ---- Clean ----
 
