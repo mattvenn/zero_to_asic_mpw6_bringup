@@ -221,7 +221,7 @@ void test_adder_in_ring(int bits)
     SET(reg_la1_data, BYPASS_B);
 
     // load the integration counter
-    reg_la2_data = 500000;
+    reg_la2_data = 2000000;
     SET(reg_la1_data, COUNTER_LOAD);
     CLR(reg_la1_data, RESET);
     CLR(reg_la1_data, COUNTER_LOAD);
@@ -237,11 +237,11 @@ void test_adder_in_ring(int bits)
     }
 
     // set the ring osc value onto the pins
-    reg_mprj_datal = reg_la2_data_in << RING_OUT_BIT0;
+    //reg_mprj_datal = reg_la2_data_in << RING_OUT_BIT0;
 
     // set done on the mprj pins
 //    reg_mprj_datal |= 1 << FW_DONE;
-    print("ring count: 0x");
+    print("0x");
     print_hex(reg_la2_data_in, 8);
     print("\n");
 
@@ -413,11 +413,22 @@ void main()
                 print("running 1x control\n");
                 test_ring_osc(1, 1);
                 break;
- //       test_adder();
-//        test_adder_in_ring(1);
- //       test_adder_in_ring(0);
+            case 'u':
+                print("test adder in ring\n");
+                print("running 20x adder\n");
+                for(i = 0 ; i < 20; i ++)
+                    test_adder_in_ring(0);
+                print("done\n");
+                break;
+            case 'v':
+                print("test adder bits in ring\n");
+                print("running 20x adder\n");
+                for(i = 0 ; i < 20; i ++)
+                    test_adder_in_ring(1);
+                print("done\n");
+                break;
             default:
-                print("p: select project\nb: run with bypass\nc: run with control\n");
+                print("p: select project\nb: run with bypass\nc: run with control\nu: test adder in ring\n");
                 break;
         }
     }
